@@ -1,0 +1,44 @@
+@page
+@model PuppeteerPoc.Areas.Printing.Pages.SamplePdf
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <base href="/"/>
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css"/>
+    <link rel="stylesheet" href="app.css"/>
+    <link rel="stylesheet" href="PuppeteerPoc.styles.css"/>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+</head>
+<body>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <table class="table table-striped table-bordered w-75">
+        <thead class="table-primary">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th><input type="checkbox" /><span> Select ALL</span></th>
+        </tr>
+        </thead>
+        <tbody>
+            @foreach (var person in Model.People)
+            {
+                <tr>
+                    <td>@person.Id</td>
+                    <td>@person.Name</td>
+                    <td><input type="checkbox" checked="@person.IsSelected" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<script src="_framework/blazor.web.js"></script>
+</body>
+</html>

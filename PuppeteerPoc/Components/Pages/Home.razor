@@ -1,0 +1,53 @@
+﻿@page "/"
+@using PuppeteerPoc.Infrastructure
+@using PuppeteerSharp
+@rendermode InteractiveServer
+@inject IJSRuntime JsRuntime
+@inject CreateAnimalPdf createAnimalPdf
+
+<PageTitle>Home</PageTitle>
+
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+        const arrayBuffer = await contentStreamReference.arrayBuffer();
+        const blob = new Blob([arrayBuffer]);
+        const url = URL.createObjectURL(blob);
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? '';
+        anchorElement.click();
+        anchorElement.remove();
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+<div class="d-flex flex-column align-items-center">
+    <div class="d-block mb-3">
+        <button class="btn btn-primary" @onclick="DownloadPdfFromPage">Click here to generate PDF using web page.</button>
+    </div>
+    <div class="d-block">
+        <button class="btn btn-primary" @onclick="DownloadPdfFromRazorPage">Click here to generate PDF using razor page as string.</button>
+    </div>
+</div>
+
+@code {
+    private async Task DownloadPdfFromPage()
+    {
+        var browserFetcher = new BrowserFetcher();
+        await browserFetcher.DownloadAsync();
+        await using var browser = await Puppeteer.LaunchAsync(new LaunchOptions { Headless = true });
+        await using var page = await browser.NewPageAsync();
+        await page.GoToAsync("http://localhost:5009/printing/samplepdf");
+        await page.EvaluateExpressionHandleAsync("document.fonts.ready");
+        var pdf = await page.PdfDataAsync(new PdfOptions { PrintBackground = true });
+        using var streamRef = new DotNetStreamReference(new MemoryStream(pdf));
+        await JsRuntime.InvokeVoidAsync("downloadFileFromStream", "SamplePdf.pdf", streamRef);
+    }
+
+    private async Task DownloadPdfFromRazorPage()
+    {
+        var pdf = await createAnimalPdf.ExecuteAsync();
+        using var streamRef = new DotNetStreamReference(new MemoryStream(pdf));
+        await JsRuntime.InvokeVoidAsync("downloadFileFromStream", "AnimalPdf.pdf", streamRef);
+    }
+}
